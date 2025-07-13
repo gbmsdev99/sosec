@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Send, Search, Shield, MessageCircle, FileText, Users } from 'lucide-react';
+import { Send, Search, Shield, MessageCircle, FileText, Users, Settings } from 'lucide-react';
 import Layout from '../components/Layout';
 
 const HomePage: React.FC = () => {
@@ -37,6 +37,17 @@ const HomePage: React.FC = () => {
               >
                 <Search className="h-5 w-5" />
                 <span>Track My Submission</span>
+              </Link>
+            </div>
+            
+            {/* Admin Portal Access */}
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <Link
+                to="/admin/login"
+                className="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors"
+              >
+                <Settings className="h-4 w-4" />
+                <span>Admin Portal</span>
               </Link>
             </div>
           </div>

@@ -91,6 +91,12 @@ const AdminDashboard: React.FC = () => {
             
             <div className="flex items-center space-x-4">
               <Link
+                to="/"
+                className="flex items-center space-x-1 px-3 py-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+              >
+                <span>Public Portal</span>
+              </Link>
+              <Link
                 to="/admin/analytics"
                 className="flex items-center space-x-1 px-3 py-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
               >

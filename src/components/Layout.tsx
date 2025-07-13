@@ -1,13 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { School, Home, Send, Search } from 'lucide-react';
+import { School, Home, Send, Search, Settings } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
   showNavigation?: boolean;
+  showAdminAccess?: boolean;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, showNavigation = true }) => {
+const Layout: React.FC<LayoutProps> = ({ children, showNavigation = true, showAdminAccess = true }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <header className="bg-white shadow-lg border-b-4 border-blue-600">
@@ -23,31 +24,43 @@ const Layout: React.FC<LayoutProps> = ({ children, showNavigation = true }) => {
               </div>
             </Link>
             
-            {showNavigation && (
-              <nav className="hidden md:flex items-center space-x-4">
+            <div className="flex items-center space-x-4">
+              {showNavigation && (
+                <nav className="hidden md:flex items-center space-x-4">
+                  <Link
+                    to="/"
+                    className="flex items-center space-x-1 px-3 py-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                  >
+                    <Home className="h-4 w-4" />
+                    <span>Home</span>
+                  </Link>
+                  <Link
+                    to="/submit"
+                    className="flex items-center space-x-1 px-3 py-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                  >
+                    <Send className="h-4 w-4" />
+                    <span>Submit</span>
+                  </Link>
+                  <Link
+                    to="/track"
+                    className="flex items-center space-x-1 px-3 py-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                  >
+                    <Search className="h-4 w-4" />
+                    <span>Track</span>
+                  </Link>
+                </nav>
+              )}
+              
+              {showAdminAccess && (
                 <Link
-                  to="/"
-                  className="flex items-center space-x-1 px-3 py-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                  to="/admin/login"
+                  className="flex items-center space-x-1 px-3 py-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors border border-gray-300 rounded-lg"
                 >
-                  <Home className="h-4 w-4" />
-                  <span>Home</span>
+                  <Settings className="h-4 w-4" />
+                  <span className="hidden sm:inline">Admin</span>
                 </Link>
-                <Link
-                  to="/submit"
-                  className="flex items-center space-x-1 px-3 py-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                >
-                  <Send className="h-4 w-4" />
-                  <span>Submit</span>
-                </Link>
-                <Link
-                  to="/track"
-                  className="flex items-center space-x-1 px-3 py-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                >
-                  <Search className="h-4 w-4" />
-                  <span>Track</span>
-                </Link>
-              </nav>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </header>

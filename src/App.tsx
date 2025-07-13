@@ -48,6 +48,13 @@ function App() {
             </ProtectedRoute>
           } />
           
+          {/* Admin redirect route */}
+          <Route path="/admin" element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          
           {/* Catch all route */}
           <Route path="*" element={<NotFound />} />
         </Routes>

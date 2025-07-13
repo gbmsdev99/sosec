@@ -1,8 +1,11 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
-import { Home, ArrowLeft } from 'lucide-react'
+import { Link, useLocation } from 'react-router-dom'
+import { Home, ArrowLeft, Settings } from 'lucide-react'
 
 const NotFound: React.FC = () => {
+  const location = useLocation()
+  const isAdminRoute = location.pathname.startsWith('/admin')
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
       <div className="max-w-md w-full text-center">
@@ -14,13 +17,23 @@ const NotFound: React.FC = () => {
           </p>
           
           <div className="space-y-3">
-            <Link
-              to="/"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-colors"
-            >
-              <Home className="h-5 w-5" />
-              <span>Go Home</span>
-            </Link>
+            {isAdminRoute ? (
+              <Link
+                to="/admin/dashboard"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-colors"
+              >
+                <Settings className="h-5 w-5" />
+                <span>Admin Dashboard</span>
+              </Link>
+            ) : (
+              <Link
+                to="/"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-colors"
+              >
+                <Home className="h-5 w-5" />
+                <span>Go Home</span>
+              </Link>
+            )}
             <button
               onClick={() => window.history.back()}
               className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-colors"
@@ -28,6 +41,15 @@ const NotFound: React.FC = () => {
               <ArrowLeft className="h-5 w-5" />
               <span>Go Back</span>
             </button>
+            {isAdminRoute && (
+              <Link
+                to="/"
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-colors"
+              >
+                <Home className="h-5 w-5" />
+                <span>Public Portal</span>
+              </Link>
+            )}
           </div>
         </div>
       </div>
