@@ -1,10 +1,18 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, Download, FileText, Database } from 'lucide-react';
-import { useData } from '../../context/DataContext';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Download, FileText, Database, LogOut, Home } from 'lucide-react';
+import { useSubmissions } from '../../hooks/useSubmissions';
+import { useAuth } from '../../hooks/useAuth';
 
 const AdminExport: React.FC = () => {
-  const { submissions } = useData();
+  const { submissions } = useSubmissions();
+  const { logout, currentUser } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/admin/login');
+  };
 
   const exportToCSV = () => {
     const headers = [
@@ -23,7 +31,7 @@ const AdminExport: React.FC = () => {
       sub.identity_value,
       sub.status,
       `"${(sub.admin_reply || '').replace(/"/g, '""')}"`,
-      sub.timestamp
+      sub.created_at
     ]);
 
     const csvContent = [headers.join(','), ...csvData.map(row => row.join(','))].join('\n');
@@ -59,6 +67,23 @@ const AdminExport: React.FC = () => {
                 <span>Back to Dashboard</span>
               </Link>
               <h1 className="text-xl font-bold text-gray-900">Export Data</h1>
+              <span className="text-sm text-gray-500">Welcome, {currentUser}</span>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Link
+                to="/"
+                className="flex items-center space-x-1 px-3 py-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+              >
+                <Home className="h-4 w-4" />
+                <span>Public Portal</span>
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="flex items-center space-x-1 px-3 py-2 rounded-md text-gray-700 hover:text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
+              </button>
             </div>
           </div>
         </div>

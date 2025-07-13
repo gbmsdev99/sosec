@@ -1,22 +1,59 @@
 import React, { useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useEffect } from 'react-router-dom';
 import { 
-  ArrowLeft, User, Calendar, Tag, AlertTriangle, Download, 
-  Save, MessageSquare, Clock, FileText
+  ArrowLeft, User, Calendar, Tag, AlertTriangle, Download, LogOut, Home,
+  Save, MessageSquare, Clock, FileText, Loader2
 } from 'lucide-react';
-import { useData } from '../../context/DataContext';
-import { useAuth } from '../../context/AuthContext';
+import { useSubmissions } from '../../hooks/useSubmissions';
+import { useAuth } from '../../hooks/useAuth';
 
 const AdminViewSubmission: React.FC = () => {
   const { trackingId } = useParams<{ trackingId: string }>();
-  const { getSubmission, updateSubmission, addAdminNote } = useData();
+  const { getSubmissionByTrackingId, updateSubmission, addAdminNote } = useSubmissions();
   const { currentUser } = useAuth();
+  const { logout } = useAuth();
   const navigate = useNavigate();
   
-  const submission = trackingId ? getSubmission(trackingId) : null;
-  const [status, setStatus] = useState(submission?.status || 'Pending');
-  const [adminReply, setAdminReply] = useState(submission?.admin_reply || '');
+  const [submission, setSubmission] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState('Pending');
+  const [adminReply, setAdminReply] = useState('');
   const [newNote, setNewNote] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const fetchSubmission = async () => {
+      if (!trackingId) return;
+      
+      setLoading(true);
+      const result = await getSubmissionByTrackingId(trackingId);
+      
+      if (result.success) {
+        setSubmission(result.data);
+        setStatus(result.data.status);
+        setAdminReply(result.data.admin_reply || '');
+      }
+      setLoading(false);
+    };
+
+    fetchSubmission();
+  }, [trackingId, getSubmissionByTrackingId]);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/admin/login');
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading submission...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!submission) {
     return (
@@ -34,18 +71,32 @@ const AdminViewSubmission: React.FC = () => {
     );
   }
 
-  const handleSave = () => {
-    updateSubmission(trackingId!, {
+  const handleSave = async () => {
+    setSaving(true);
+    const result = await updateSubmission(submission.id, {
       status: status as 'Pending' | 'In Review' | 'Resolved',
       admin_reply: adminReply
     });
-    alert('Submission updated successfully!');
+    
+    if (result.success) {
+      alert('Submission updated successfully!');
+    } else {
+      alert('Failed to update submission. Please try again.');
+    }
+    setSaving(false);
   };
 
-  const handleAddNote = () => {
+  const handleAddNote = async () => {
     if (newNote.trim() && currentUser) {
-      addAdminNote(trackingId!, newNote.trim(), currentUser);
-      setNewNote('');
+      const result = await addAdminNote(submission.id, newNote.trim(), currentUser);
+      if (result.success) {
+        setNewNote('');
+        // Refresh submission data
+        const refreshResult = await getSubmissionByTrackingId(trackingId!);
+        if (refreshResult.success) {
+          setSubmission(refreshResult.data);
+        }
+      }
     }
   };
 
@@ -75,14 +126,39 @@ const AdminViewSubmission: React.FC = () => {
                 <ArrowLeft className="h-5 w-5" />
                 <span>Back to Dashboard</span>
               </Link>
+              <span className="text-sm text-gray-500">Welcome, {currentUser}</span>
             </div>
             <div className="flex items-center space-x-4">
+              <Link
+                to="/"
+                className="flex items-center space-x-1 px-3 py-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+              >
+                <Home className="h-4 w-4" />
+                <span>Public Portal</span>
+              </Link>
               <button
                 onClick={handleSave}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2"
+                disabled={saving}
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2"
               >
-                <Save className="h-4 w-4" />
-                <span>Save Changes</span>
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    <span>Save Changes</span>
+                  </>
+                )}
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex items-center space-x-1 px-3 py-2 rounded-md text-gray-700 hover:text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
               </button>
             </div>
           </div>
@@ -135,7 +211,7 @@ const AdminViewSubmission: React.FC = () => {
                     <div>
                       <p className="text-sm text-gray-600">Submitted</p>
                       <p className="font-medium text-gray-900">
-                        {new Date(submission.timestamp).toLocaleString()}
+                        {new Date(submission.created_at).toLocaleString()}
                       </p>
                     </div>
                   </div>
@@ -246,15 +322,15 @@ const AdminViewSubmission: React.FC = () => {
 
               {/* Notes History */}
               <div className="space-y-3 max-h-64 overflow-y-auto">
-                {submission.admin_notes.length === 0 ? (
+                {(!submission.admin_notes || submission.admin_notes.length === 0) ? (
                   <p className="text-sm text-gray-500 italic">No notes added yet</p>
                 ) : (
                   submission.admin_notes.map((note, index) => (
                     <div key={index} className="bg-gray-50 rounded-lg p-3">
                       <div className="flex items-start justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-900">{note.admin}</span>
+                        <span className="text-sm font-medium text-gray-900">{note.admin_name}</span>
                         <span className="text-xs text-gray-500">
-                          {new Date(note.timestamp).toLocaleDateString()}
+                          {new Date(note.created_at).toLocaleDateString()}
                         </span>
                       </div>
                       <p className="text-sm text-gray-700">{note.note}</p>

@@ -1,11 +1,19 @@
 import React, { useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, TrendingUp, BarChart3, PieChart, Calendar } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, TrendingUp, BarChart3, PieChart, Calendar, LogOut, Home } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart as RechartsPieChart, Cell, LineChart, Line, ResponsiveContainer } from 'recharts';
-import { useData } from '../../context/DataContext';
+import { useSubmissions } from '../../hooks/useSubmissions';
+import { useAuth } from '../../hooks/useAuth';
 
 const AdminAnalytics: React.FC = () => {
-  const { submissions } = useData();
+  const { submissions } = useSubmissions();
+  const { logout, currentUser } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/admin/login');
+  };
 
   const analytics = useMemo(() => {
     // Category breakdown
@@ -51,7 +59,7 @@ const AdminAnalytics: React.FC = () => {
 
     const timeSeriesData = last30Days.map(date => {
       const count = submissions.filter(sub => 
-        sub.timestamp.split('T')[0] === date
+        sub.created_at.split('T')[0] === date
       ).length;
       return {
         date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
@@ -99,6 +107,23 @@ const AdminAnalytics: React.FC = () => {
                 <span>Back to Dashboard</span>
               </Link>
               <h1 className="text-xl font-bold text-gray-900">Analytics</h1>
+              <span className="text-sm text-gray-500">Welcome, {currentUser}</span>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Link
+                to="/"
+                className="flex items-center space-x-1 px-3 py-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+              >
+                <Home className="h-4 w-4" />
+                <span>Public Portal</span>
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="flex items-center space-x-1 px-3 py-2 rounded-md text-gray-700 hover:text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
+              </button>
             </div>
           </div>
         </div>
@@ -154,7 +179,7 @@ const AdminAnalytics: React.FC = () => {
                 <p className="text-sm font-medium text-gray-600">This Month</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {submissions.filter(sub => 
-                    new Date(sub.timestamp).getMonth() === new Date().getMonth()
+                    new Date(sub.created_at).getMonth() === new Date().getMonth()
                   ).length}
                 </p>
               </div>
